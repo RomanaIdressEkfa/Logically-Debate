@@ -9,6 +9,37 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
+    public function showAdminLogin()
+    {
+        return view('admin.login');
+    }
+
+    // 2. Handle Admin Form Submission
+    public function adminLogin(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            // Strict check: Must be Admin
+            if ($user->role !== 'admin') {
+                Auth::logout();
+                return back()->withErrors(['email' => 'Access Restricted. Admins only.']);
+            }
+
+            $request->session()->regenerate();
+            
+            // Redirect to the Dashboard
+            return redirect()->route('admin.dashboard');
+        }
+
+        return back()->withErrors(['email' => 'Invalid credentials.']);
+    }
    public function register(Request $request)
     {
         $request->validate([

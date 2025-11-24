@@ -1,64 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex">
-    <div class="w-64 bg-white shadow-md rounded-lg p-4 mr-6 min-h-screen">
-         <ul class="space-y-2">
-            <li><a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 rounded hover:bg-gray-100">Dashboard</a></li>
-            <li><a href="{{ route('admin.users') }}" class="block px-4 py-2 rounded bg-indigo-50 text-indigo-700">User Approvals</a></li>
-            <li><a href="{{ route('admin.debates') }}" class="block px-4 py-2 rounded hover:bg-gray-100">Manage Debates</a></li>
-        </ul>
+<div class="flex min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -mt-6">
+     <div class="w-64 bg-gray-900 text-white p-6 hidden md:block">
+        <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+        <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-white mb-4 block">← Back to Dashboard</a>
     </div>
 
-    <div class="flex-1">
-        <h1 class="text-2xl font-bold mb-6">User Management</h1>
+    <div class="flex-1 bg-gray-100 p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Users Management</h1>
+            <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">Filter: {{ $currentFilter ?? 'All' }}</span>
+        </div>
+
         <div class="bg-white shadow rounded-lg overflow-hidden">
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                        <th class="px-5 py-3 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                        <th class="px-5 py-3 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                        <th class="px-5 py-3 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+                        <th class="px-5 py-3 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Approved?</th>
+                        <th class="px-5 py-3 bg-gray-50"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $user->name }}</td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $user->email }}</td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm font-bold">{{ strtoupper($user->role) }}</td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    @forelse($users as $user)
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="px-5 py-5 text-sm">{{ $user->name }}</td>
+                        <td class="px-5 py-5 text-sm">{{ $user->email }}</td>
+                        <td class="px-5 py-5 text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ strtoupper($user->role) }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-5 text-sm">
                             @if($user->is_approved)
-                                <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                                    <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                                    <span class="relative">Approved</span>
-                                </span>
+                                <span class="text-green-600 font-bold">Yes</span>
                             @else
-                                <span class="relative inline-block px-3 py-1 font-semibold text-yellow-900 leading-tight">
-                                    <span aria-hidden class="absolute inset-0 bg-yellow-200 opacity-50 rounded-full"></span>
-                                    <span class="relative">Pending</span>
-                                </span>
+                                <span class="text-red-500 font-bold animate-pulse">Pending</span>
                             @endif
                         </td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm flex gap-2">
+                        <td class="px-5 py-5 text-sm text-right">
                             @if(!$user->is_approved)
-                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">
+                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-xs">Approve</button>
+                                    <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">Approve</button>
                                 </form>
-                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST">
-                                    @method('DELETE')
-                                    @csrf
-                                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-xs">Reject</button>
+                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="inline ml-2">
+                                    @csrf @method('DELETE')
+                                    <button class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600" onclick="return confirm('Delete user?')">Reject</button>
                                 </form>
                             @else
-                                <button class="text-gray-400 cursor-not-allowed">Active</button>
+                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button class="text-red-500 hover:text-red-700 text-xs font-bold" onclick="return confirm('Ban/Delete this user?')">Ban/Delete</button>
+                                </form>
                             @endif
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-5 py-5 text-center text-gray-500">No users found for this filter.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
             <div class="p-4">
